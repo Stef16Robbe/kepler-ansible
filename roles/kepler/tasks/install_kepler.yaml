@@ -1,0 +1,38 @@
+---
+- name: Download kepler archive from GH releases (localhost)
+  ansible.builtin.get_url:
+    url: https://github.com/sustainable-computing-io/kepler/releases/latest/download/kepler.rpm.tar.gz
+    dest: "/tmp"
+  delegate_to: localhost
+  register: tarfile_loc
+
+- name: Debug
+  ansible.builtin.debug:
+    var: tarfile_loc
+
+# TODO: remove hard-coded version
+# possible method:
+# extract all files in certain dir in /tmp
+# run find command to find the one we want (find can use wildcards)
+- name: Extract RPM from archive  (localhost)
+  ansible.builtin.unarchive:
+    src: '{{ tarfile_loc["dest"] }}'
+    include: "RPMS/x86_64/kepler-0.7.2-0.7.2.x86_64.rpm"
+    dest: "/tmp"
+    list_files: true
+  delegate_to: localhost
+
+- name: Move over RPM
+  ansible.builtin.copy:
+    src: "/tmp/RPMS/x86_64/kepler-0.7.2-0.7.2.x86_64.rpm"
+    dest: "/tmp"
+
+- name: Install RPM
+  ansible.builtin.dnf:
+    name: "/tmp/kepler-0.7.2-0.7.2.x86_64.rpm"
+    state: present
+    # FIXME
+    # for some reason, the file can be installed without issues manually
+    # but when doing the exact same via ansible the following error occurs:
+    # "Failed to validate GPG signature for kepler-0.7.2-0.7.2.x86_64: Package kepler-0.7.2-0.7.2.x86_64.rpm is not signed"
+    disable_gpg_check: true

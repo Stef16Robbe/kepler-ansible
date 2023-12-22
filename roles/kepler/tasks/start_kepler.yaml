@@ -1,0 +1,6 @@
+---
+- name: Start and enable Kepler service
+  ansible.builtin.service:
+    name: kepler
+    state: started
+    enabled: true

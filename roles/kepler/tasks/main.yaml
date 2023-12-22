@@ -1,0 +1,9 @@
+---
+- name: Include task pre_reqs
+  ansible.builtin.include_tasks: pre_reqs.yaml
+
+- name: Include task install_kepler
+  ansible.builtin.include_tasks: install_kepler.yaml
+
+- name: Include task start_kepler
+  ansible.builtin.include_tasks: start_kepler.yaml
