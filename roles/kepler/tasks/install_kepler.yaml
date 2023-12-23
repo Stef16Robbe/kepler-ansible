@@ -2,34 +2,44 @@
 - name: Download kepler archive from GH releases (localhost)
   ansible.builtin.get_url:
     url: https://github.com/sustainable-computing-io/kepler/releases/latest/download/kepler.rpm.tar.gz
-    dest: "/tmp"
+    dest: "{{ kepler_tgz_loc }}"
   delegate_to: localhost
-  register: tarfile_loc
+  run_once: true
 
-- name: Debug
-  ansible.builtin.debug:
-    var: tarfile_loc
+- name: Create dir for extraction (localhost)
+  ansible.builtin.file:
+    path: "{{ kepler_extracted_loc }}"
+    state: directory
+    mode: "0755"
+  delegate_to: localhost
 
-# TODO: remove hard-coded version
-# possible method:
-# extract all files in certain dir in /tmp
-# run find command to find the one we want (find can use wildcards)
-- name: Extract RPM from archive  (localhost)
+- name: Extract archive (localhost)
   ansible.builtin.unarchive:
-    src: '{{ tarfile_loc["dest"] }}'
-    include: "RPMS/x86_64/kepler-0.7.2-0.7.2.x86_64.rpm"
-    dest: "/tmp"
+    src: "{{ kepler_tgz_loc }}"
+    dest: "{{ kepler_extracted_loc }}"
     list_files: true
+    extra_opts:
+      - "--strip-components=1"
+  delegate_to: localhost
+  run_once: true
+
+- name: Find RPM in extracted contents (localhost)
+  ansible.builtin.find:
+    paths: "{{ kepler_extracted_loc }}"
+    patterns: "kepler-*.x86_64.rpm"
+    recurse: true
+  register: local_rpm_loc
   delegate_to: localhost
 
 - name: Move over RPM
   ansible.builtin.copy:
-    src: "/tmp/RPMS/x86_64/kepler-0.7.2-0.7.2.x86_64.rpm"
+    src: "{{ local_rpm_loc['files'][0]['path'] }}"
     dest: "/tmp"
+  register: remote_rpm_loc
 
 - name: Install RPM
   ansible.builtin.dnf:
-    name: "/tmp/kepler-0.7.2-0.7.2.x86_64.rpm"
+    name: "{{ remote_rpm_loc['dest'] }}"
     state: present
     # FIXME
     # for some reason, the file can be installed without issues manually

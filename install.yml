@@ -1,0 +1,5 @@
+---
+- name: Install Kepler on remote systems
+  hosts: systems
+  roles:
+    - kepler

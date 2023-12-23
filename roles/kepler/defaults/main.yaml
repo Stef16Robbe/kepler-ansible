@@ -1,2 +1,3 @@
 ---
-# default vars
+kepler_tgz_loc: "/tmp/kepler.rpm.tar.gz"
+kepler_extracted_loc: "/tmp/kepler/"
