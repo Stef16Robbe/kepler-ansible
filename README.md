@@ -41,3 +41,11 @@ scrape_configs:
         # YOUR TARGETS GO HERE:
         - <ip or hostname>
 ```
+
+## TODO
+
+We now have a very simple install setup but it can be improved upon
+
+- Run kepler in container instead of directly on host
+- Add log centralization?
+- ...
