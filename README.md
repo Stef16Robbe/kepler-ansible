@@ -7,10 +7,6 @@ It's also runnable on bare Linux hosts. This is where it's missing features at t
 
 We're going to make ansible playbooks for getting insight into energy consumption of a wide range of hosts. For environments that are not containerized, but still run on just Linux systems, whether VM's or BM's (spoiler alert, a lot of companies still rely on this).
 
-## Tech
-
-- ansible + <https://prometheus.io/docs/prometheus/latest/federation/>
-
 ## Known limitations
 
 - Currently not running in container which is possible
@@ -18,4 +14,30 @@ We're going to make ansible playbooks for getting insight into energy consumptio
 
 ## Usage
 
-ansible-navigator run kepler-install.yml -m stdout --enable-prompts
+`ansible-navigator run kepler-install.yml -m stdout --enable-prompts`
+
+This will install Kepler on selected systems
+
+These can be scraped using various methods, one of which is Prometheus agent.
+
+Install Prometheus, for example with Ansible: <https://github.com/prometheus-community/ansible/tree/main/roles/prometheus>
+
+The following example config can be used to collect log data on a central host:
+
+```yaml
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+
+scrape_configs:
+  - job_name: dc_prometheus
+    honor_labels: true
+    metrics_path: /metrics
+    params:
+      match[]:
+        - '{__name__=~"^job:.*"}' # Request all job-level time series
+    static_configs:
+      - targets:
+        # YOUR TARGETS GO HERE:
+        - <ip or hostname>
+```
